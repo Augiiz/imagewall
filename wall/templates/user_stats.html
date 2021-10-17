@@ -1,0 +1,40 @@
+{% extends "layout.html" %} {% load static %} {% block cssfiles %} {% endblock cssfiles %} {% block searchform %}
+<form class="form-inline my-2 my-lg-0 ml-5" action="{% url 'search-posts' %}" method="get">
+    <input name="p" type="text" placeholder="Search posts.." />
+    <button class="btn btn-success my-2 my-sm-0 ml-4" type="submit">Search</button>
+</form>
+{% endblock searchform %} {% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            {% if posts %}
+            <h4 class="pt-md-4">Top 5 {{posts.0.user_name}} posts by rating</h4>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;" scope="col">Title</th>
+                        <th style="width: 40%;" scope="col">Image</th>
+                        <th style="width: 20%;" scope="col">Rating</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        {% for post in posts|slice:":5" %}
+
+                        <table class="table">
+                            <td style="width: 40%;">
+                                <a href="{% url 'post-detail' post.id %}"><p class="card-text text">{{ post.title }}</p></a>
+                            </td>
+                            <td style="width: 40%;">
+                                <a href="{% url 'post-detail' post.id %}"><img width="100" src="{{ post.image.url }}" alt="" /></a>
+                            </td>
+                            <td style="width: 20%;">{{ post.rating }}</td>
+                    </tr>
+                </tbody>
+                </table>
+{% endfor %} {% else %}
+<h2>User has no posts!</h2>
+{% endif %}
+</div>
+
+{% endblock content %}{% block jsfiles %}{% endblock jsfiles %}

@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <link rel="icon" type="image/png" href="{% static 'favicon.png' %}" />
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+    <link rel="stylesheet" href="{% static 'extra.css' %}" />
+    <title>ImageWall</title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <a class="navbar-brand ml-4 mr-4" href="{% url 'home' %}"><b>ImageWall</b></a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+                <a class="nav-item nav-link" href="{% url 'home' %}">Home</a>
+
+                {% if user.is_authenticated %}
+
+                <div class="dropdown">
+                    <button class="btn btn-link nav-item nav-link dropdown-toggle oneFromTop" data-toggle="dropdown">
+                        Categories
+                    </button>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="/category/?p=general">General</a>
+                        <a class="dropdown-item" href="/category/?p=funny">Funny</a>
+                        <a class="dropdown-item" href="/category/?p=serious">Serious</a>
+                        <a class="dropdown-item" href="/category/?p=animals">Animals</a>
+                        <a class="dropdown-item" href="/category/?p=nature">Nature</a>
+                        <a class="dropdown-item" href="/category/?p=useful">Useful</a>
+                        <a class="dropdown-item" href="/category/?p=infographics">Infographics</a>
+                    </div>
+                </div>
+                <a class="nav-item nav-link btn btn-primary ml-2" href="{% url 'post-create' %}">Create Post</a>
+            </div>
+
+            <ul class="navbar-nav ml-auto">
+
+                <div class="dropdown">
+                  <button class="btn btn-link nav-item nav-link dropdown-toggle oneFromTop" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Search
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+
+                    <div class="card float-right searchstyle">
+                        <p class="card-text">
+                            {% block searchform %}{% endblock searchform %}
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <a class="nav-item nav-link" href="{% url 'friend_list' %}">Friends</a>
+            <a class="nav-item nav-link" href="{% url 'my_profile' %}">Profile</a>
+
+            {% if user.is_superuser %}
+            <a class="nav-item nav-link" href="{% url 'admin:index' %}">Admin</a>
+            {% endif %}
+
+
+            <a class="nav-item nav-link btn btn-danger ml-2" href="{% url 'logout' %}">Logout</a>
+            {% else %}
+            <a class="nav-item nav-link btn btn-success ml-3 text-white" href="{% url 'login' %}">Login</a>
+            <a class="nav-item nav-link btn btn-info ml-3 text-white" href="{% url 'register' %}">Register</a>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+
+
+<div class="container device-top">
+    {% block content %}{% endblock content %}
+</div>
+
+<footer class="page-footer font-small black">
+    <div class="footer-copyright text-center py-3">
+        ImageWall © 2020 <br />
+        <small class="text-muted"><a href="{% url 'tos' %}">TOS</a> | <a href="{% url 'contacts' %}">Contacts</a></small>
+    </div>
+</footer>
+
+
+<!-- JS Files -->
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script>
+    $( document ).ready(function() {
+      $('[data-toggle=search-form]').click(function() {
+          $('.search-form-wrapper').toggleClass('open');
+          $('.search-form-wrapper .search').focus();
+          $('html').toggleClass('search-form-open');
+      });
+      $('[data-toggle=search-form-close]').click(function() {
+          $('.search-form-wrapper').removeClass('open');
+          $('html').removeClass('search-form-open');
+      });
+      $('.search-form-wrapper .search').keypress(function( event ) {
+        if($(this).val() == "Search") $(this).val("");
+    });
+
+      $('.search-close').click(function(event) {
+        $('.search-form-wrapper').removeClass('open');
+        $('html').removeClass('search-form-open');
+    });
+  });
+</script>
+{% block jsfiles %}{% endblock jsfiles %}
+</body>
+</html>

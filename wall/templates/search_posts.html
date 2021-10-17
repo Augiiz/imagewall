@@ -1,0 +1,138 @@
+{% extends "layout.html" %} {% load static %} {% block cssfiles %} {% endblock cssfiles %} {% block searchform %}
+<form class="form-inline my-2 my-lg-0 ml-5" action="{% url 'search-posts' %}" method="get">
+    <input name="p" type="text" placeholder="Search posts.." />
+    <button class="btn btn-success my-2 my-sm-0 ml-4" type="submit">Search</button>
+</form>
+{% endblock searchform %} {% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-7 centerThis">
+
+            {% if request.resolver_match.view_name == 'category' or request.resolver_match.view_name == 'category-by-rating' %} {% if not posts %}
+            <h2>
+                <i><center>No such category exists or it's empty!</center></i>
+            </h2>
+            {% endif %}
+            <h2>
+                <i><center>{{posts.0.category}}</center></i>
+            </h2>
+
+            {% endif %} {% if request.resolver_match.view_name == 'search-posts' or request.resolver_match.view_name == 'search-posts-rating' %} {% if not posts %}
+            <h2><i>No posts match the tag provided!</i></h2>
+            {% endif %}
+
+            {% endif %} {% if posts %}
+
+            <center style="margin-bottom: -40px;">
+                Sort by: {% if request.resolver_match.view_name == 'category' or request.resolver_match.view_name == 'category-by-rating' %}
+                <a class="{% if request.resolver_match.view_name == 'category' %} text-info{% endif %}" href="{% url 'category' %}?p={{posts.0.category}}">Newest</a> -
+                <a class="{% if request.resolver_match.view_name == 'category-by-rating' %} text-info{% endif %}" href="{% url 'category-by-rating' %}?p={{posts.0.category}}">Rating</a>
+
+                {% endif %} {% if request.resolver_match.view_name == 'search-posts' or request.resolver_match.view_name == 'search-posts-rating' %}
+                <a class="{% if request.resolver_match.view_name == 'search-posts' %} text-info{% endif %}" href="{% url 'search-posts' %}?p={{request.GET.p}}">Newest</a> -
+                <a class="{% if request.resolver_match.view_name == 'search-posts-rating' %} text-info{% endif %}" href="{% url 'search-posts-rating' %}?p={{request.GET.p}}">Rating</a>
+                {% endif %}
+            </center>
+            {% endif %} {% for post in posts %}
+            <div class="card card-signin my-5">
+                <div class="card-body">
+                    <a href="{{ post.user_name.profile.get_absolute_url }}"><img src="{{ post.user_name.profile.avatar.url }}" class="rounded-circle" width="30" height="30" alt="" /></a>
+                    <a class="text" href="{{ post.user_name.profile.get_absolute_url }}"><b>{{ post.user_name }}</b></a>
+                    <small class="text-muted"> <div style="float: right;">Posted on {{ post.date_posted|date:"Y/m/d - H:i:s" }}</div></small>
+                    <br />
+                    <br />
+                    <p class="card-text h4">{{ post.title }}</p>
+                </div>
+                <a href="{% url 'post-detail' post.id %}"><img class="card-img-top" src="{{ post.image.url }}" alt="" /></a>
+                {% if post.tags %}
+                <br />
+                <p class="text-danger ml-3">
+                    <b>
+                        Tags:
+                        <i>
+                            {% for tag in post.split_tags %}
+                            <a href="{{ post.get_tag_url }}{{ tag }}">{{ tag }}</a>
+                            {% endfor %}
+                        </i>
+                    </b>
+                    {% endif %} {% if post.category %}
+                    <b style="float: right;"> Category: <a href="{{ post.get_category_url }}{{ post.category }}">{{ post.category }}</a></b>
+                </p>
+
+                {% endif %}
+                <div class="card-footer">
+                    <button class="btn btn-white mr-3 like" id="{{ post.id }}">
+                        {% if post in liked_post %}
+                        <a href="{% url 'post-like' %}" style="color: green;" id="likebtn{{ post.id }}">Liked</a>
+                        <p style="display: inline; border: 1px solid green; border-radius: 3px; margin-left: 5px; padding: 0 10px 0 10px;">{{post.likeCount}}</p>
+
+                        {% else %}
+                        <a href="{% url 'post-like' %}" style="color: white;" id="likebtn{{ post.id }}">Like</a>
+                        <p style="display: inline; border: 1px solid green; border-radius: 3px; margin-left: 5px; padding: 0 10px 0 10px;">{{post.likeCount}}</p>
+                        {% endif %}
+                    </button>
+
+                    <button class="btn btn-white mr-3 dislike" id="{{ post.id }}">
+                        {% if post in disliked_post %}
+                        <a href="{% url 'post-dislike' %}" style="color: red;" id="dislikebtn{{ post.id }}">Disliked</a>
+                        <p style="display: inline; border: 1px solid red; border-radius: 3px; margin-left: 5px; padding: 0 10px 0 10px;">{{post.dislikeCount}}</p>
+                        {% else %}
+                        <a href="{% url 'post-dislike' %}" style="color: white;" id="dislikebtn{{ post.id }}">Dislike</a>
+                        <p style="display: inline; border: 1px solid red; border-radius: 3px; margin-left: 5px; padding: 0 10px 0 10px;">{{post.dislikeCount}}</p>
+                        {% endif %}
+                    </button>
+                    <div style="float: right;"><a class="btn btn-outline-info" href="{% url 'post-detail' post.id %}">Comments | {{ post.comments.count }}</a></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock content %} {% block jsfiles %}
+<script>
+    $(".like").click(function (e) {
+        var id = this.id;
+        var href = $(".like").find("a").attr("href");
+        e.preventDefault();
+
+        $.ajax({
+            url: href,
+            data: {
+                likeId: id,
+            },
+            success: function (response) {
+                if (response.liked) {
+                    $("#likebtn" + id).html("Liked");
+                    $("#likebtn" + id).css("color", "green");
+                } else {
+                    $("#likebtn" + id).html("Unliked");
+                    $("#likebtn" + id).css("color", "white");
+                }
+            },
+        });
+    });
+</script>
+<script>
+    $(".dislike").click(function (e) {
+        var id = this.id;
+        var href = $(".dislike").find("a").attr("href");
+        e.preventDefault();
+
+        $.ajax({
+            url: href,
+            data: {
+                dislikeId: id,
+            },
+            success: function (response) {
+                if (response.disliked) {
+                    $("#dislikebtn" + id).html("Disliked");
+                    $("#dislikebtn" + id).css("color", "red");
+                } else {
+                    $("#dislikebtn" + id).html("Undisliked");
+                    $("#dislikebtn" + id).css("color", "white");
+                }
+            },
+        });
+    });
+</script>
+{% endblock jsfiles %}

@@ -1,0 +1,10 @@
+.searchstyle{padding: 0px 50px 0px 0;}
+.device-top{padding-top:50px;}
+.navbar {padding: 5px 5px;}
+.centerThis{margin: auto;}
+.dropdown-menu { padding: 0;}
+.oneFromTop{margin-top: -1px;}
+@media only screen and (max-width: 1200px) {
+.float-right {float: none !important;}
+.my-2 {margin-top: 0 !important; margin-bottom: 0 !important;}
+.device-top{padding-top:50px;}}

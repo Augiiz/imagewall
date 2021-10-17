@@ -1,0 +1,146 @@
+{% extends "layout.html" %} {% load static %} {% block cssfiles %} {% endblock cssfiles %} {% block searchform %}
+<form class="form-inline my-2 my-lg-0 ml-5" action="{% url 'search-posts' %}" method="get">
+    <input name="p" type="text" placeholder="Search posts.." />
+    <button class="btn btn-success my-2 my-sm-0 ml-4" type="submit">Search</button>
+</form>
+{% endblock searchform %} {% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-7 centerThis">
+
+            {% if request.resolver_match.view_name == 'user-liked-posts' %} {% if not posts %}
+            <center>
+                <h2>No liked posts found!</h2>
+            </center>
+            {% endif %} {% if posts %}
+            <center>
+                <h4>Liked posts</h4>
+                <center style="margin-bottom: -40px;"></center>
+            </center>
+            {% endif %} {% endif %} {% if request.resolver_match.view_name == 'user-posts' or request.resolver_match.view_name == 'user-posts-by-rating' %} {% if not posts %}
+            <center>
+                <h2>User has no posts!</h2>
+            </center>
+            {% endif %} {% if posts %}
+            <center><h4>{{posts.0.user_name}} posts</h4></center>
+            <center style="margin-bottom: -40px;">
+                Sort by:
+                <a class="{% if request.resolver_match.view_name == 'user-posts' %} text-info{% endif %}" href="../user_posts/{{posts.0.user_name}}">Newest</a> -
+                <a class="{% if request.resolver_match.view_name == 'user-posts-by-rating' %} text-info{% endif %}" href="../user_posts_top/{{posts.0.user_name}}">Rating</a>
+            </center>
+            {% endif %} {% endif %} {% for post in posts %}
+            <div class="card card-signin my-5">
+                <div class="card-body">
+                    <a href="{{ post.user_name.profile.get_absolute_url }}"><img src="{{ post.user_name.profile.avatar.url }}" class="rounded-circle" width="30" height="30" alt="" /></a>
+                    <a class="text" href="{{ post.user_name.profile.get_absolute_url }}"><b>{{ post.user_name }}</b></a>
+                    <small class="text-muted"> <div style="float: right;">Posted on {{ post.date_posted|date:"Y/m/d - H:i:s" }}</div></small>
+                    <br />
+                    <br />
+                    <p class="card-text h4">{{ post.title }}</p>
+                </div>
+                <a href="{% url 'post-detail' post.id %}"><img class="card-img-top" src="{{ post.image.url }}" alt="" /></a>
+                {% if post.tags %}
+                <br />
+                <p class="text-danger ml-3">
+                    <b>
+                        Tags:
+                        <i>
+                            {% for tag in post.split_tags %}
+                            <a href="{{ post.get_tag_url }}{{ tag }}">{{ tag }}</a>
+                            {% endfor %}
+                        </i>
+                    </b>
+                    {% endif %} {% if post.category %}
+                    <b style="float: right;"> Category: <a href="{{ post.get_category_url }}{{ post.category }}">{{ post.category }}</a></b>
+                </p>
+
+                {% endif %}
+                <div class="card-footer">
+                    <button class="btn btn-white mr-3 like" id="{{ post.id }}">
+                        {% if post in liked_post %}
+                        <a href="{% url 'post-like' %}" style="color: green;" id="likebtn{{ post.id }}">Liked</a>
+                        <p style="display: inline; border: 1px solid green; border-radius: 3px; margin-left: 5px; padding: 0 10px 0 10px;">{{post.likeCount}}</p>
+
+                        {% else %}
+                        <a href="{% url 'post-like' %}" style="color: white;" id="likebtn{{ post.id }}">Like</a>
+                        <p style="display: inline; border: 1px solid green; border-radius: 3px; margin-left: 5px; padding: 0 10px 0 10px;">{{post.likeCount}}</p>
+                        {% endif %}
+                    </button>
+
+                    <button class="btn btn-white mr-3 dislike" id="{{ post.id }}">
+                        {% if post in disliked_post %}
+                        <a href="{% url 'post-dislike' %}" style="color: red;" id="dislikebtn{{ post.id }}">Disliked</a>
+                        <p style="display: inline; border: 1px solid red; border-radius: 3px; margin-left: 5px; padding: 0 10px 0 10px;">{{post.dislikeCount}}</p>
+                        {% else %}
+                        <a href="{% url 'post-dislike' %}" style="color: white;" id="dislikebtn{{ post.id }}">Dislike</a>
+                        <p style="display: inline; border: 1px solid red; border-radius: 3px; margin-left: 5px; padding: 0 10px 0 10px;">{{post.dislikeCount}}</p>
+                        {% endif %}
+                    </button>
+
+                    <div style="float: right;"><a class="btn btn-outline-info" href="{% url 'post-detail' post.id %}">Comments | {{ post.comments.count }}</a></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% if is_paginated %} {% if page_obj.has_previous %}
+<a class="btn btn-outline-info mb-4" href="?page=1">First</a>
+<a class="btn btn-outline-info mb-4" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+{% endif %} {% for num in page_obj.paginator.page_range %} {% if page_obj.number == num %}
+<a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
+{% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+<a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
+{% endif %} {% endfor %} {% if page_obj.has_next %}
+<a class="btn btn-outline-info mb-4" href="?page={{ page_obj.next_page_number }}">Next</a>
+<a class="btn btn-outline-info mb-4" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+{% endif %} {% endif %} {% endblock content %} {% block jsfiles %}
+<script>
+    $(".like").click(function (e) {
+        var id = this.id;
+        var href = $(".like").find("a").attr("href");
+        e.preventDefault();
+
+        $.ajax({
+            url: href,
+            data: {
+                likeId: id,
+            },
+            success: function (response) {
+                if (response.liked) {
+                    $("#likebtn" + id).html("Liked");
+                    $("#likebtn" + id).css("color", "green");
+                } else {
+                    $("#likebtn" + id).html("Unliked");
+                    $("#likebtn" + id).css("color", "white");
+                }
+            },
+        });
+    });
+</script>
+<script>
+    $(".dislike").click(function (e) {
+        var id = this.id;
+        var href = $(".dislike").find("a").attr("href");
+        e.preventDefault();
+
+        $.ajax({
+            url: href,
+            data: {
+                dislikeId: id,
+            },
+            success: function (response) {
+                if (response.disliked) {
+                    $("#dislikebtn" + id).html("Disliked");
+                    $("#dislikebtn" + id).css("color", "red");
+                } else {
+                    $("#dislikebtn" + id).html("Dislike");
+                    $("#dislikebtn" + id).css("color", "red");
+                }
+            },
+        });
+    });
+</script>
+
+{% endblock jsfiles %}
